@@ -5,9 +5,8 @@ import { withRouter } from 'react-router-dom'
 import { mensagemErro } from '../components/toastr'
 
 import UsuarioService from '../app/service/usuarioService'
-import LocalStorageService from '../app/service/localStorageService'
+import { AuthContext } from '../main/provedorAutenticacao'
 class Login extends React.Component {
-
 
     state = {
         email: '',
@@ -24,7 +23,7 @@ class Login extends React.Component {
             email: this.state.email,
             senha: this.state.senha
         }).then(response => {
-            LocalStorageService.addItem('_usuario_logado', response.data)
+            this.context.iniciarSessao(response.data)
             this.props.history.push('/home')
         }).catch(err => {
             mensagemErro(err.response.data)
@@ -63,8 +62,9 @@ class Login extends React.Component {
                                                     aria-describedby="emailHelp"
                                                     placeholder="Digite a Senha" />
                                             </FormGroup>
-                                            <button onClick={this.entrar} className="btn btn-success">Entrar</button>
-                                            <button className="btn btn-danger" onClick={this.prepareCadastrar}>Cadastrar</button>
+                                            <button onClick={this.entrar} className="btn btn-success"><i className="pi pi-sign-in"></i>Entrar</button>
+                                            <button className="btn btn-danger" onClick={this.prepareCadastrar}>
+                                                <i className="pi pi-plus"></i>Cadastrar</button>
                                         </fieldset>
                                     </div>
                                 </div>
@@ -76,5 +76,7 @@ class Login extends React.Component {
         )
     }
 }
+
+Login.contextType = AuthContext;
 
 export default withRouter(Login) 

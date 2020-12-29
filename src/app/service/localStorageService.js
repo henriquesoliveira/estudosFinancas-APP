@@ -8,5 +8,9 @@ export default class LocalStorageService{
         const usuarioLogadoString =  localStorage.getItem(chave);
         return JSON.parse(usuarioLogadoString)
     }
+
+    static removerItem(chave){
+        localStorage.removeItem(chave);
+    }
 }
 

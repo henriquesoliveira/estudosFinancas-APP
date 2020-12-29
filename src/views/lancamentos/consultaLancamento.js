@@ -8,7 +8,9 @@ import LancamentosTable from './lancamentosTable'
 import LancamentoService from '../../app/service/lancamentoService'
 import LocalStorageService from '../../app/service/localStorageService'
 
-import { mensagemErro, mensagemSucesso } from '../../components/toastr'
+import { mensagemAlerta, mensagemErro, mensagemSucesso } from '../../components/toastr'
+import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 
 class ConsultaLancamento extends React.Component {
 
@@ -17,7 +19,9 @@ class ConsultaLancamento extends React.Component {
         mes: '',
         tipoLancamento: '',
         lancamentos: [],
-        descricao: ''
+        descricao: '',
+        showConfirmDialog: false,
+        lancamentoDeletar:{}
     }
 
     constructor() {
@@ -46,36 +50,79 @@ class ConsultaLancamento extends React.Component {
         this.service
             .consultar(lancamentoFiltro)
             .then(response => {
-                this.setState({ lancamentos: response.data })
+                const lista = response.data;
+                
+                if(lista.length < 1){
+                    mensagemAlerta('Nenhum resultado encontrado!')
+                }
+
+                this.setState({ lancamentos: lista })
             }).catch(err => {
                 mensagemErro(err.response)
             })
     }
 
     editar = (id) => {
-        console.log('editando', id);
+        this.props.history.push(`/cadastro-lancamento/${id}`)
     }
 
-    deletar = (lancamento) => {
+    deletar = () => {
         this.service
-        .deletar(lancamento.id)
+            .deletar(this.state.lancamentoDeletar.id)
+            .then(response => {
+                const lancamentos = this.state.lancamentos;
+                const index = lancamentos.indexOf(this.state.lancamentoDeletar);
+                lancamentos.splice(index, 1);
+
+                this.setState({ lancamentos:lancamentos, showConfirmDialog:false })
+
+                mensagemSucesso('Lançamento excluido com sucesso')
+            }).catch(err => {
+                mensagemErro('Ocorreu um erro ao tentar excluir registro:' + err.response)
+            })
+    }
+
+    alterarStatus = (lancamento, status) =>{
+        this.service.alterarStatus(lancamento.id, status)
         .then(response =>{
             const lancamentos = this.state.lancamentos;
             const index = lancamentos.indexOf(lancamento);
-            lancamentos.splice(index, 1);
-            
-            this.setState(lancamentos)
-            
-            mensagemSucesso('Lançamento excluido com sucesso')
+
+            if(index !== -1){
+                lancamento['status'] = status;
+                lancamentos[index] = lancamento;
+                this.setState({lancamento})
+            }
+
+            mensagemSucesso('Status atualizado com Sucesso')
         }).catch(err =>{
-            mensagemErro('Ocorreu um erro ao tentar excluir registro:' + err.response)
+            mensagemErro(err.response.data)
         })
+    }
+
+    preparaFormularioCadastro = () => {
+        this.props.history.push('/cadastro-lancamento')
+    }
+
+    abrirConfirmacao = (lancamento) =>{
+        this.setState({showConfirmDialog: true, lancamentoDeletar: lancamento })
+    }
+
+    cancelarExclusao = () =>{
+        this.setState({showConfirmDialog: false, lancamentoDeletar: {}})
     }
 
     render() {
         const listaMes = this.service.obterListaMeses();
 
         const listaTipoLancamento = this.service.obterListaTiposLancamentos();
+
+        const confirmDialogfooter = (
+            <div>
+                <Button label="Sim" icon="pi pi-check" onClick={this.deletar} />
+                <Button label="Não" icon="pi pi-times" className="p-button-warning" onClick={this.cancelarExclusao} />
+            </div>
+        );
 
 
         return (
@@ -116,8 +163,8 @@ class ConsultaLancamento extends React.Component {
                                     onChange={e => this.setState({ tipoLancamento: e.target.value })} />
                             </FormGroup>
 
-                            <button onClick={this.buscar} type="button" className="btn btn-success">Buscar</button>
-                            <button type="button" className="btn btn-danger">Cadastrar</button>
+                            <button onClick={this.buscar} type="button" className="btn btn-success"><i className="pi pi-search"></i> Buscar</button>
+                            <button onClick={this.preparaFormularioCadastro} type="button" className="btn btn-danger"><i className="pi pi-plus"></i> Cadastrar</button>
 
                         </div>
                     </div>
@@ -127,10 +174,20 @@ class ConsultaLancamento extends React.Component {
                     <div className="col-md-12">
                         <div className="bs-component">
                             <LancamentosTable lancamentos={this.state.lancamentos}
-                                deleteAction={this.deletar}
-                                editAction={this.editar} />
+                                deleteAction={this.abrirConfirmacao}
+                                editAction={this.editar} 
+                                alterarStatus={this.alterarStatus}/>
                         </div>
                     </div>
+                </div>
+                <div>
+                    <Dialog header="Confirmar Exclusão" 
+                    visible={this.state.showConfirmDialog} 
+                    footer={confirmDialogfooter}
+                    style={{ width: '50vw' }} 
+                                        onHide={() => this.setState({showConfirmDialog: false})}>
+                        <p>Confirma a exclusão deste Lançamento?</p>
+                    </Dialog>
                 </div>
             </Card>
         )
