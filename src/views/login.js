@@ -17,12 +17,13 @@ class Login extends React.Component {
         this.service = new UsuarioService();
     }
 
-    entrar = async () => {
+    entrar =  () => {
 
         this.service.autenticar({
             email: this.state.email,
             senha: this.state.senha
         }).then(response => {
+            console.log(response.data)
             this.context.iniciarSessao(response.data)
             this.props.history.push('/home')
         }).catch(err => {

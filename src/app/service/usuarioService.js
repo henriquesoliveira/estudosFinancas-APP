@@ -34,7 +34,7 @@ class UsuarioService extends ApiService {
 
         if (!usuario.senha || !usuario.senhaRepeticao) {
             erros.push('Digite os campos de Senha')
-        } else if (this.usuario.senha !==usuario.senhaRepeticao) {
+        } else if (usuario.senha !== usuario.senhaRepeticao) {
             erros.push('As Senhas não conferem')
         }
 

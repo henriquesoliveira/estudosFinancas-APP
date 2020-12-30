@@ -27,21 +27,24 @@ class CadastroUsuario extends React.Component {
         const usuario = { nome, email, senha, senhaRepeticao }
 
         try {
-            this.service.validar(usuario)
+            this.service.validar(usuario);
         } catch (error) {
             const erros = error.mensagens;
+            console.log('Erros no catch validar', erros)
             erros.forEach(element => {
-                mensagemErro(element);
+                mensagemErro(element.response.data);
             });
             return false;
         }
 
+        console.log('Chamou o salvar')
         this.service.salvar(usuario)
             .then(response => {
                 mensagemSucesso('Usuário Cadastrado com sucesso! Faça o login para acessar o sistema.')
                 this.props.history.push('/login')
             }).catch(err => {
-                mensagemErro(err.response.data)
+                console.log('Erro no salvar', err)
+                mensagemErro(err)
             })
     }
 
