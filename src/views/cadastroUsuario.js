@@ -30,14 +30,12 @@ class CadastroUsuario extends React.Component {
             this.service.validar(usuario);
         } catch (error) {
             const erros = error.mensagens;
-            console.log('Erros no catch validar', erros)
             erros.forEach(element => {
-                mensagemErro(element.response.data);
+                mensagemErro(element);
             });
             return false;
         }
 
-        console.log('Chamou o salvar')
         this.service.salvar(usuario)
             .then(response => {
                 mensagemSucesso('Usuário Cadastrado com sucesso! Faça o login para acessar o sistema.')

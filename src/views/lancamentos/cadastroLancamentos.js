@@ -50,7 +50,7 @@ class CadastroLancamentos extends React.Component {
         } catch (error) {
             const erros = error.mensagens;
             erros.forEach(element => {
-                mensagemErro(element.response.data);
+                mensagemErro(element);
             });
             return false;
         }
